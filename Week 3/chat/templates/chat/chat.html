@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-4">
+    <h3>Welcome, {{ request.user.username }}!</h3>
+    <div id="chat-box" style="height:400px; overflow-y:scroll; border:1px solid #ccc; padding:10px; margin-bottom:10px;"></div>
+    <div class="input-group">
+        <input id="msg-input" type="text" class="form-control" placeholder="Type a message...">
+        <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+    </div>
+    <br>
+    <a href="/logout/" class="btn btn-danger">Logout</a>
+
+    <script>
+        const username = "{{ request.user.username }}";
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/chat/general/');
+
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const box = document.getElementById('chat-box');
+            box.innerHTML += `<p><b>${data.username}:</b> ${data.message}</p>`;
+            box.scrollTop = box.scrollHeight;
+        };
+
+        function sendMessage() {
+            const input = document.getElementById('msg-input');
+            socket.send(JSON.stringify({message: input.value}));
+            input.value = '';
+        }
+
+        document.getElementById('msg-input').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
